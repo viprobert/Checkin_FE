@@ -2,7 +2,8 @@ import { Box, Tabs, Tab, Typography } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const tabs = [
-  { label: "🔴 รอบล่าสุด", path: "/" },
+  { label: "🏠 แดชบอร์ด", path: "/" },
+  { label: "🔴 รอบล่าสุด", path: "/latest" },
   { label: "🟡 รอบก่อนหน้า", path: "/previous" },
   { label: "📝 สรุปรายวัน", path: "/daily" },
   { label: "🌴 ลางาน/หยุด", path: "/absence" },

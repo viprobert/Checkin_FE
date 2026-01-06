@@ -1,7 +1,11 @@
 import { BrowserRouter, Routes, Route  } from "react-router-dom";
 import AppLayout from "./components/layout/AppLayout";
 import HeaderTabs from "./components/layout/HeaderTabs";
+import DashboardPage from "./pages/DashboardPage";
 import LatestPage from "./pages/LatestPage";
+import PreviousPage from "./pages/PreviousPage";
+import DailyPage from "./pages/DailyPage";
+import AbsencePage from "./pages/DayOffPage";
 import { Box, Typography } from "@mui/material";
 
 function Placeholder({ title }: { title: string }) {
@@ -17,10 +21,12 @@ export default function App() {
     <BrowserRouter>
       <AppLayout header={<HeaderTabs />}>
         <Routes>
-          <Route path="/" element={<LatestPage />} />
-          <Route path="/previous" element={<Placeholder title="รอบก่อนหน้า" />} />
-          <Route path="/daily" element={<Placeholder title="สรุปรายวัน" />} />
-          <Route path="/absence" element={<Placeholder title="ลางาน/หยุด" />} />
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/latest" element={<LatestPage />} />
+          <Route path="/previous" element={<PreviousPage/>} />
+          <Route path="/daily" element={<DailyPage/>} />
+          <Route path="/absence" element={<AbsencePage />} />
+          <Route path="/test" element={<Placeholder title="สรุปรายวัน" />} />
         </Routes>
       </AppLayout>
     </BrowserRouter>

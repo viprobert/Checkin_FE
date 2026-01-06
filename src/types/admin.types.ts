@@ -1,12 +1,14 @@
 export type RoundStatus = "success" | "pending" | "late" | "absent" | "none";
 
+// Latest Page
 export type LatestRow = {
   userId: string;
   name: string;
+  websiteName: string;
   shift: string;
   profileUrl: string | null;
-  round1: { status: RoundStatus; images: string[] };
-  round2: { status: RoundStatus; images: string[] };
+  round1: { status: RoundStatus; images: string[]; checkinTime: string | null};
+  round2: { status: RoundStatus; images: string[]; checkinTime: string | null };
 };
 
 export type LatestResponse = {
@@ -23,6 +25,7 @@ export type LatestResponse = {
   rows: LatestRow[];
 };
 
+// Previous Page
 export type CurrentRoundResponse = {
   ok: boolean;
   active: null | {
@@ -31,4 +34,77 @@ export type CurrentRoundResponse = {
     round?: number | null;
     createdAt?: string;
   };
+};
+
+// Absence Page
+export type AbsenceType = "dayoff" | "sick";
+
+export type AbsenceRow = {
+  userId: string;
+  name: string;
+  profileUrl: string | null;
+  websiteName: string | null;
+  type: AbsenceType;
+};
+
+export type AbsenceResponse = {
+  ok: true;
+  date: string;
+  counts: { dayoff: number; sick: number };
+  rows: AbsenceRow[];
+};
+
+// Dashboard
+export type DashRow = {
+  userId: string;
+  name: string;
+  profileUrl: string | null;
+  websiteName: string | null;
+  shiftId: string;
+  shiftName: string;
+  round1: { status: RoundStatus; images: string[]; checkinTime: string | null };
+  round2: { status: RoundStatus; images: string[]; checkinTime: string | null };
+  remark: "dayoff" | "sick" | null;
+};
+
+export type DashShift = {
+  shiftId: string;
+  shiftName: string;
+  shiftTime: string;
+  userCount: number;
+};
+
+export type DashboardResponse = {
+  ok: true;
+  meta: { serverTime: string };
+  totalUsers: number;
+  shifts: DashShift[];
+  rows: DashRow[];
+};
+
+//Daily
+export type DailyRow = {
+  userId: string;
+  name: string;
+  profileUrl: string | null;
+  websiteName: string | null;
+  shiftId: string;
+  shiftName: string;
+  round1: { status: RoundStatus; images: string[]; checkinTime: string | null };
+  round2: { status: RoundStatus; images: string[]; checkinTime: string | null };
+};
+
+export type DailyShift = {
+  shiftId: string;
+  shiftName: string;
+  shiftTime: string;
+  userCount: number;
+};
+
+export type DailyResponse = {
+  ok: true;
+  meta: { serverTime: string };
+  totalUsers: number;
+  shifts: DailyShift[];
+  rows: DailyRow[];
 };

@@ -14,7 +14,7 @@ import {
   Avatar,
   CircularProgress,
 } from "@mui/material";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import StatusChip from "../components/common/StatusChip";
 import ImageThumbStack from "../components/common/ImageThumbStack";
 import { getLatest, getCurrentRound } from "../services/adminservice";
@@ -28,41 +28,89 @@ export default function LatestPage() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    if (!activeShiftId) return;
+  const loadingRef = useRef(false);
+
+  const fmtHHmm = (iso: string | null | undefined) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const pickShiftId = (cur: any) =>
+    cur?.meta?.shiftId || cur?.shiftId || cur?.active?.shiftId || null;
+
+  const loadByShift = useCallback(async (shiftId: string) => {
+    if (!shiftId) return;
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+
     setLoading(true);
     setErr(null);
     try {
-      const d = await getLatest(activeShiftId);
+      const d = await getLatest(shiftId);
       setData(d);
     } catch (e: any) {
       setErr(e?.message || "Failed to load");
       setData(null);
     } finally {
       setLoading(false);
+      loadingRef.current = false;
     }
-  }, [activeShiftId]);
+  }, []);
 
-  useEffect(() => {
-    if (!activeShiftId) {
-      setLoading(false);
+  const syncFromCurrentRound = useCallback(async () => {
+    try {
+      setLoading(true);
       setErr(null);
+
+      const cur: any = await getCurrentRound();
+
+      const shiftId = pickShiftId(cur);
+      if (!shiftId) {
+        setData(null);
+        setLoading(false);
+        return;
+      }
+
+      setActiveShiftId(shiftId);
+
+      const s = getSocket();
+      s.emit("joinDashboards");
+      s.emit("joinShift", shiftId);
+
+      // ✅ If getCurrentRound returns LatestResponse (counts/meta/rows), bind it directly
+      if (cur?.meta && cur?.counts && Array.isArray(cur?.rows)) {
+        setData(cur as LatestResponse);
+      } else {
+        // fallback if shape differs
+        await loadByShift(shiftId);
+      }
+    } catch (e: any) {
+      setErr(e?.message || "Failed to sync");
       setData(null);
-      return;
+    } finally {
+      setLoading(false);
     }
-    load();
-  }, [activeShiftId, load]);
+  }, [loadByShift, setActiveShiftId]);
+
+  // Initial load
+  useEffect(() => {
+    syncFromCurrentRound();
+  }, [syncFromCurrentRound]);
 
   // Round Start
   useEffect(() => {
     const s = getSocket();
-    const onConnect = () => s.emit("joinDashboards");
-    const onRoundStarted = (payload: any) => {
-      const shiftId = payload?.shiftId;
-      if (!shiftId) return;
 
-      setActiveShiftId(shiftId);
-      s.emit("joinShift", shiftId);
+    const onConnect = () => {
+      s.emit("joinDashboards");
+      syncFromCurrentRound(); // resync on reconnect
+    };
+
+    const onRoundStarted = () => {
+      // ✅ exactly what you asked: when socket hits -> call getCurrentRound -> bind
+      syncFromCurrentRound();
     };
 
     s.on("connect", onConnect);
@@ -74,56 +122,92 @@ export default function LatestPage() {
       s.off("connect", onConnect);
       s.off("roundStarted", onRoundStarted);
     };
-  }, [setActiveShiftId]);
-  // Checkin
+  }, [syncFromCurrentRound]);
+
+  // Checkin (patch only the user + counts)
   useEffect(() => {
     const s = getSocket();
 
     const onCheckinUpdated = (payload: any) => {
+      console.log("payload", payload);
       if (!activeShiftId) return;
       if (payload?.shiftId !== activeShiftId) return;
 
-      load();
+      const userId = payload?.userId;
+      const roundNo = payload?.round;
+      const nextImages = Array.isArray(payload?.images) ? payload.images : undefined;
+      const nextCheckinTime = payload?.checkinTime ? String(payload.checkinTime) : undefined;
+      const nextStatus = payload?.status as
+        | "success"
+        | "late"
+        | "absent"
+        | "pending"
+        | undefined;
+
+      if (!userId || (roundNo !== 1 && roundNo !== 2) || !nextStatus) return;
+
+      const roundKey = roundNo === 1 ? "round1" : "round2";
+
+      setData((prev) => {
+        if (!prev) return prev;
+
+        const idx = prev.rows.findIndex((r) => r.userId === userId);
+        if (idx === -1) return prev;
+
+        const row = prev.rows[idx];
+        const prevStatus = row[roundKey]?.status;
+
+        const updatedRow = {
+          ...row,
+          [roundKey]: {
+            ...row[roundKey],
+            status: nextStatus,
+            ...(nextImages ? { images: nextImages } : {}),
+            ...(nextCheckinTime ? { checkinTime: nextCheckinTime } : {}),
+          },
+        };
+
+        const newRows = [...prev.rows];
+        newRows[idx] = updatedRow;
+
+        let newCounts = prev.counts;
+        if (prevStatus && prevStatus !== nextStatus) {
+          newCounts = { ...prev.counts } as any;
+          (newCounts as any)[prevStatus] = Math.max(
+            0,
+            ((newCounts as any)[prevStatus] || 0) - 1
+          );
+          (newCounts as any)[nextStatus] = ((newCounts as any)[nextStatus] || 0) + 1;
+        }
+
+        return { ...prev, rows: newRows, counts: newCounts };
+      });
     };
 
     s.on("checkinUpdated", onCheckinUpdated);
-
     return () => {
       s.off("checkinUpdated", onCheckinUpdated);
     };
-  }, [activeShiftId, load]);
-
-  const resume = async () => {
-    try {
-      const cur = await getCurrentRound();
-      const shiftId = cur?.active?.shiftId;
-      if (shiftId) {
-        setActiveShiftId(shiftId);
-        const s = getSocket();
-        s.emit("joinDashboards");
-        s.emit("joinShift", shiftId);
-      }
-    } catch {
-    }
-  };
-
-  //Resume
-  useEffect(() => {
-    resume();
-  }, [activeShiftId, setActiveShiftId]);
-
-  if (!activeShiftId) {
-    resume();
-    load();
-  }
+  }, [activeShiftId]);
 
   if (loading && !data) return <CircularProgress />;
   if (err) return <Alert severity="error">{err}</Alert>;
   if (!data) return <Alert severity="info">ยังไม่มีข้อมูลรอบล่าสุด</Alert>;
 
-  const timeText =
+  const timeStart =
     data.meta.startAt
-      ? new Date(data.meta.startAt).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })
+      ? new Date(data.meta.startAt).toLocaleTimeString("th-TH", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "-";
+
+  const timeEnd =
+    data.meta.endAt10
+      ? new Date(data.meta.endAt10).toLocaleTimeString("th-TH", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
       : "-";
 
   const roundText = data.meta.round ? `รอบ ${data.meta.round}` : "ยังไม่มีรอบ";
@@ -131,7 +215,8 @@ export default function LatestPage() {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
       <Alert severity="info" sx={{ fontWeight: 800 }}>
-        รอบล่าสุดเวลา: {timeText} ({data.meta.shiftName} {data.meta.shiftTime}) • {roundText}
+        {data.meta.shiftName}({data.meta.shiftTime}) • {" "}
+        {roundText} - ({timeStart} to {timeEnd})
       </Alert>
 
       <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
@@ -141,14 +226,29 @@ export default function LatestPage() {
         <Chip label={`Absent: ${data.counts.absent}`} color="error" />
       </Stack>
 
-      <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, overflowX: "auto" }}>
+      <TableContainer
+        component={Paper}
+        variant="outlined"
+        sx={{ borderRadius: 2, overflowX: "auto" }}
+      >
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell><Typography fontWeight={900}>ชื่อ</Typography></TableCell>
-              <TableCell><Typography fontWeight={900}>กะ</Typography></TableCell>
-              <TableCell><Typography fontWeight={900}>รอบ 1</Typography></TableCell>
-              <TableCell><Typography fontWeight={900}>รอบ 2</Typography></TableCell>
+              <TableCell>
+                <Typography fontWeight={900}>ชื่อ</Typography>
+              </TableCell>
+              <TableCell>
+                <Typography fontWeight={900}>เว็บไซต์</Typography>
+              </TableCell>
+              <TableCell>
+                <Typography fontWeight={900}>กะ</Typography>
+              </TableCell>
+              <TableCell>
+                <Typography fontWeight={900}>รอบ 1</Typography>
+              </TableCell>
+              <TableCell>
+                <Typography fontWeight={900}>รอบ 2</Typography>
+              </TableCell>
             </TableRow>
           </TableHead>
 
@@ -166,20 +266,39 @@ export default function LatestPage() {
                     <span>{r.name}</span>
                   </Stack>
                 </TableCell>
+                
+                <TableCell sx={{ fontWeight: 500 }}>{r.websiteName || "-"}</TableCell>
 
                 <TableCell>{r.shift}</TableCell>
 
+                {/* ✅ status + images side-by-side */}
                 <TableCell>
-                  <Stack spacing={0.75}>
-                    <StatusChip status={r.round1.status} />
-                    <ImageThumbStack images={r.round1.images || [] } /> 
+                  <Stack spacing={0.5}>
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: "wrap" }}>
+                      <StatusChip status={r.round1.status} />
+                      <ImageThumbStack images={r.round1.images || []} />
+                    </Stack>
+
+                    {!!fmtHHmm(r.round1.checkinTime) && (
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+                        {fmtHHmm(r.round1.checkinTime)}
+                      </Typography>
+                    )}
                   </Stack>
                 </TableCell>
 
                 <TableCell>
-                  <Stack spacing={0.75}>
-                    <StatusChip status={r.round2.status} />
-                    <ImageThumbStack images={r.round2.images || [] } />
+                  <Stack spacing={0.5}>
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: "wrap" }}>
+                      <StatusChip status={r.round2.status} />
+                      <ImageThumbStack images={r.round2.images || []} />
+                    </Stack>
+
+                    {!!fmtHHmm(r.round2.checkinTime) && (
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+                        {fmtHHmm(r.round2.checkinTime)}
+                      </Typography>
+                    )}
                   </Stack>
                 </TableCell>
               </TableRow>

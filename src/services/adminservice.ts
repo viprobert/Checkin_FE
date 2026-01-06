@@ -9,7 +9,24 @@ export async function getLatest(shiftId: string) {
 }
 
 export async function getCurrentRound() {
-  const res = await api.get<CurrentRoundResponse>("/admin");
+  const res = await api.get<CurrentRoundResponse>("/admin/round");
   return res.data;
 }
 
+export async function getPreviousRound() {
+  return api.get("/admin/previous").then((r) => r.data);
+}
+
+export async function getAbsence() {
+  return api.get("/admin/absence").then((r) => r.data);
+}
+
+export async function getDashboard(shiftId?: string) {
+  const params = shiftId ? { shiftId } : undefined;
+  return api.get("/admin/dashboard", { params }).then((r) => r.data);
+}
+
+export async function getDaily(shiftId?: string) {
+  const params = shiftId ? { shiftId } : undefined;
+  return api.get("/admin/daily", { params }).then((r) => r.data);
+}
