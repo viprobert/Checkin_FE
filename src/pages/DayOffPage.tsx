@@ -19,8 +19,9 @@ import { getAbsence } from "../services/adminservice";
 import { type AbsenceType, type AbsenceResponse } from "../types/admin.types";
 
 function TypeChip({ type }: { type: AbsenceType }) {
-  if (type === "sick") return <Chip size="small" label="ป่วย" color="error" />;
-  return <Chip size="small" label="หยุด" color="warning" />;
+  if (type === "sick") return <Chip size="small" label="ป่วย" color="warning" />;
+  if (type === "personal") return <Chip size="small" label="กิจ" color="warning" />;
+  return <Chip size="small" label="หยุด" color="success" />;
 }
 
 export default function AbsencePage() {

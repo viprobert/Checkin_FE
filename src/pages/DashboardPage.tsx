@@ -35,11 +35,12 @@ const fmtHHmm = (iso: string | null | undefined) => {
 const fileDate = (d: Date) => d.toLocaleDateString("en-CA");
 
 const remarkText = (
-  remark: "dayoff" | "sick" | null,
+  remark: "dayoff" | "sick" | "personal" | null,
   r1: RoundStatus,
   r2: RoundStatus
 ) => {
   if (remark === "dayoff") return "DAYOFF";
+  if (remark === "personal") return "PERSONAL";
   if (remark === "sick") return "SICK";
 
   const s = [r1, r2];
@@ -71,13 +72,14 @@ const exportExcel = (rows: DashRow[]) => {
 };
 
 function getRemarkChip(
-  remark: "dayoff" | "sick" | null,
+  remark: "dayoff" | "sick" |  "personal" | null,
   r1: RoundStatus,
   r2: RoundStatus
 ) {
-  if (remark === "dayoff") return <Chip size="small" label="หยุด" color="warning" />;
-  if (remark === "sick") return <Chip size="small" label="ป่วย" color="error" />;
-
+  if (remark === "dayoff") return <Chip size="small" label="วันหยุด" color="warning" />;
+  if (remark === "personal") return <Chip size="small" label="กิจ" color="warning" />;
+  if (remark === "sick") return <Chip size="small" label="ป่วย" color="warning" />;
+  
   const s = [r1, r2];
 
   if (s.includes("absent")) return <Chip size="small" label="ขาดงาน" color="error" />;

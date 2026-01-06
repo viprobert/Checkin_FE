@@ -37,7 +37,7 @@ export type CurrentRoundResponse = {
 };
 
 // Absence Page
-export type AbsenceType = "dayoff" | "sick";
+export type AbsenceType = "dayoff" | "sick" | "personal";
 
 export type AbsenceRow = {
   userId: string;

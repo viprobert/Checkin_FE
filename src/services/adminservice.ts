@@ -30,3 +30,12 @@ export async function getDaily(shiftId?: string) {
   const params = shiftId ? { shiftId } : undefined;
   return api.get("/admin/daily", { params }).then((r) => r.data);
 }
+
+export async function setTelegramHook(body: {
+  botToken: string;
+  botName: string;
+  webhookSecret: string;
+  webhookUrl: string;
+}) {
+  return api.post("/hook", body).then((r) => r.data);
+}

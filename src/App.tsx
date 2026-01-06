@@ -6,6 +6,7 @@ import LatestPage from "./pages/LatestPage";
 import PreviousPage from "./pages/PreviousPage";
 import DailyPage from "./pages/DailyPage";
 import AbsencePage from "./pages/DayOffPage";
+import TelegramHookPage from "./pages/TelegramHookPage";
 import { Box, Typography } from "@mui/material";
 
 function Placeholder({ title }: { title: string }) {
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="/previous" element={<PreviousPage/>} />
           <Route path="/daily" element={<DailyPage/>} />
           <Route path="/absence" element={<AbsencePage />} />
+          <Route path="/telegram" element={<TelegramHookPage />} />
           <Route path="/test" element={<Placeholder title="สรุปรายวัน" />} />
         </Routes>
       </AppLayout>
