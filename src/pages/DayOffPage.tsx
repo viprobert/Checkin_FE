@@ -16,12 +16,7 @@ import {
 } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 import { getAbsence } from "../services/adminservice";
-import { type AbsenceType, type AbsenceRow, type AbsenceResponse } from "../types/admin.types";
-
-
-
-
-
+import { type AbsenceType, type AbsenceResponse } from "../types/admin.types";
 
 function TypeChip({ type }: { type: AbsenceType }) {
   if (type === "sick") return <Chip size="small" label="ป่วย" color="error" />;
