@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3500",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3600",
   headers: {
     "ngrok-skip-browser-warning": "1",
   },
