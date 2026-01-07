@@ -34,7 +34,11 @@ export default function LatestPage() {
     if (!iso) return "";
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return "";
-    return d.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
+    return d.toLocaleTimeString("th-TH", {
+      timeZone: "Asia/Bangkok",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   const pickShiftId = (cur: any) =>
@@ -194,21 +198,8 @@ export default function LatestPage() {
   if (err) return <Alert severity="error">{err}</Alert>;
   if (!data) return <Alert severity="info">ยังไม่มีข้อมูลรอบล่าสุด</Alert>;
 
-  const timeStart =
-    data.meta.startAt
-      ? new Date(data.meta.startAt).toLocaleTimeString("th-TH", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      : "-";
-
-  const timeEnd =
-    data.meta.endAt10
-      ? new Date(data.meta.endAt10).toLocaleTimeString("th-TH", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      : "-";
+  const timeStart = data.meta.startAt ? fmtHHmm(data.meta.startAt) : "-";
+  const timeEnd = data.meta.endAt10 ? fmtHHmm(data.meta.endAt10) : "-";
 
   const roundText = data.meta.round ? `รอบ ${data.meta.round}` : "ยังไม่มีรอบ";
 
