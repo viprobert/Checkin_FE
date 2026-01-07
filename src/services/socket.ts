@@ -1,10 +1,11 @@
 import { io, Socket } from "socket.io-client";
 
 let socket: Socket | null = null;
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_BASE || "http://46.250.234.11:3600";
 
 export function getSocket() {
   if (!socket) {
-    socket = io(import.meta.env.VITE_API_BASE_URL || "http://localhost:3600", {
+    socket = io(SOCKET_URL, {
       transports: ["websocket"],
     });
     socket.on("connect", () => console.log("✅ socket connected:", socket?.id));

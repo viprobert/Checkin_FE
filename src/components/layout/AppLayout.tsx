@@ -1,6 +1,8 @@
 import { Box, Paper } from "@mui/material";
 import React from "react";
-import bg from "../../assets/back_home.png";
+import P5Background from "../common/p5Background";
+import p2bg from "../../assets/my-illustration-background.png"
+import p2fg from "../../assets/my-illustration-foreground.png";
 
 export default function AppLayout({
   header,
@@ -10,17 +12,14 @@ export default function AppLayout({
   children: React.ReactNode;
 }) {
   return (
-    <Box
+     <Box
       sx={{
         position: "fixed",
         inset: 0,
-        backgroundImage: `url(${bg})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
         overflow: "hidden",
       }}
     >
+      <P5Background bgImage={p2bg} fgImage={p2fg} particleCount={500} />
       <Box
         sx={{
           position: "absolute",
@@ -29,6 +28,7 @@ export default function AppLayout({
           alignItems: "center",
           justifyContent: "center",
           p: { xs: 1.5, sm: 3 },
+          zIndex: 2,
           backgroundColor: "rgba(0,0,0,0.0)", // set to 0.15 if you want darker
         }}
       >
