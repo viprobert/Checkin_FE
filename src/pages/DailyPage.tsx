@@ -129,7 +129,7 @@ export default function DailyPage() {
                   <Stack spacing={0.5}>
                     <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: "wrap" }}>
                       <StatusChip status={r.round1.status} />
-                      <ImageThumbStack images={r.round1.images || []} />
+                      <ImageThumbStack images={r.round1.images || []} checkinId={r.round1.checkinId}/>
                     </Stack>
                     {fmtHHmm(r.round1.checkinTime) ? (
                       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
@@ -143,7 +143,7 @@ export default function DailyPage() {
                   <Stack spacing={0.5}>
                     <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: "wrap" }}>
                       <StatusChip status={r.round2.status} />
-                      <ImageThumbStack images={r.round2.images || []} />
+                      <ImageThumbStack images={r.round2.images || []} checkinId={r.round2.checkinId}/>
                     </Stack>
                     {fmtHHmm(r.round2.checkinTime) ? (
                       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>

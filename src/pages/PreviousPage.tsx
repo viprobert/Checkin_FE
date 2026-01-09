@@ -223,14 +223,14 @@ export default function PreviousPage() {
                 <TableCell>
                   <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: "wrap" }}>
                     <StatusChip status={r.round1.status} />
-                    <ImageThumbStack images={r.round1.images || []} />
+                    <ImageThumbStack images={r.round1.images || []} checkinId={r.round1.checkinId}/>
                   </Stack>
                 </TableCell>
 
                 <TableCell>
                   <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: "wrap" }}>
                     <StatusChip status={r.round2.status} />
-                    <ImageThumbStack images={r.round2.images || []} />
+                    <ImageThumbStack images={r.round2.images || []} checkinId={r.round2.checkinId}/>
                   </Stack>
                 </TableCell>
               </TableRow>
