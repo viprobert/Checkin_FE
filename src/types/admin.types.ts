@@ -7,8 +7,8 @@ export type LatestRow = {
   websiteName: string;
   shift: string;
   profileUrl: string | null;
-  round1: { status: RoundStatus; images: string[]; checkinTime: string | null};
-  round2: { status: RoundStatus; images: string[]; checkinTime: string | null };
+  round1: { status: RoundStatus; images: string[]; checkinTime: string | null; checkinId?: string | null;};
+  round2: { status: RoundStatus; images: string[]; checkinTime: string | null; checkinId?: string | null; };
 };
 
 export type LatestResponse = {
@@ -65,8 +65,8 @@ export type DashRow = {
   websiteName: string | null;
   shiftId: string;
   shiftName: string;
-  round1: { status: RoundStatus; images: string[]; checkinTime: string | null };
-  round2: { status: RoundStatus; images: string[]; checkinTime: string | null };
+  round1: { status: RoundStatus; images: string[]; checkinTime: string | null; checkinId?: string | null; };
+  round2: { status: RoundStatus; images: string[]; checkinTime: string | null; checkinId?: string | null; };
   remark: "dayoff" | "sick" | null;
 };
 
@@ -93,8 +93,8 @@ export type DailyRow = {
   websiteName: string | null;
   shiftId: string;
   shiftName: string;
-  round1: { status: RoundStatus; images: string[]; checkinTime: string | null };
-  round2: { status: RoundStatus; images: string[]; checkinTime: string | null };
+  round1: { status: RoundStatus; images: string[]; checkinTime: string | null; checkinId?: string | null; };
+  round2: { status: RoundStatus; images: string[]; checkinTime: string | null; checkinId?: string | null; };
 };
 
 export type DailyShift = {

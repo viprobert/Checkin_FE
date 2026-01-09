@@ -139,7 +139,11 @@ export default function LatestPage() {
 
       const userId = payload?.userId;
       const roundNo = payload?.round;
-      const nextImages = Array.isArray(payload?.images) ? payload.images : undefined;
+      const nextImages =
+      Array.isArray(payload?.thumbs) ? payload.thumbs :
+      Array.isArray(payload?.images) ? payload.images :
+      undefined;
+      const nextCheckinId = payload?.checkinId ? String(payload.checkinId) : undefined;
       const nextCheckinTime = payload?.checkinTime ? String(payload.checkinTime) : undefined;
       const nextStatus = payload?.status as
         | "success"
@@ -167,6 +171,7 @@ export default function LatestPage() {
             ...row[roundKey],
             status: nextStatus,
             ...(nextImages ? { images: nextImages } : {}),
+            ...(nextCheckinId ? { checkinId: nextCheckinId } : {}),
             ...(nextCheckinTime ? { checkinTime: nextCheckinTime } : {}),
           },
         };

@@ -39,3 +39,7 @@ export async function setTelegramHook(body: {
 }) {
   return api.post("/hook", body).then((r) => r.data);
 }
+
+export async function getCheckinImages(checkinId: string) {
+  return api.get(`/admin/checkins/${checkinId}/images`).then((r) => r.data as { ok: true; images: string[] });
+}

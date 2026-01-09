@@ -122,7 +122,12 @@ export default function PreviousPage() {
       const userId = payload?.userId;
       const roundNo = payload?.round;
       const nextStatus = payload?.status as "success" | "late" | "absent" | "pending" | undefined;
-      const nextImages = Array.isArray(payload?.images) ? payload.images : undefined;
+      const nextImages =
+      Array.isArray(payload?.thumbs) ? payload.thumbs :
+      Array.isArray(payload?.images) ? payload.images :
+      undefined;
+
+      const nextCheckinId = payload?.checkinId ? String(payload.checkinId) : undefined;
 
       if (!userId || (roundNo !== 1 && roundNo !== 2) || !nextStatus) return;
 
@@ -143,6 +148,7 @@ export default function PreviousPage() {
             ...row[roundKey],
             status: nextStatus,
             ...(nextImages ? { images: nextImages } : {}),
+            ...(nextCheckinId ? { checkinId: nextCheckinId } : {}),
           },
         };
 

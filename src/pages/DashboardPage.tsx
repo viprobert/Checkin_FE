@@ -23,7 +23,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import StatusChip from "../components/common/StatusChip";
 import ImageThumbStack from "../components/common/ImageThumbStack";
-import { getDashboard } from "../services/adminservice";
+import { getDashboard, getCheckinImages } from "../services/adminservice";
 import { type DashboardResponse, type RoundStatus, type DashRow  } from "../types/admin.types";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import * as XLSX from "xlsx";
@@ -109,6 +109,8 @@ export default function DashboardPage() {
   const [r1Idx, setR1Idx] = useState(0);
   const [r2Idx, setR2Idx] = useState(0);
 
+  const [compareLoading, setCompareLoading] = useState(false);
+
   const firstImg = (imgs?: string[] | null) => (imgs && imgs.length ? imgs[0] : null);
 
   useEffect(() => {
@@ -134,11 +136,30 @@ export default function DashboardPage() {
     load(selectedShiftId);
   }, [load, selectedShiftId]);
 
-  const handleOpenCompare = (row: DashRow) => {
+  const handleOpenCompare = async (row: DashRow) => {
     setCompareRow(row);
     setR1Idx(0);
     setR2Idx(0);
     setOpenCompare(true);
+    setCompareLoading(true);
+    try {
+      const [r1Full, r2Full] = await Promise.all([
+        row.round1.checkinId ? getCheckinImages(row.round1.checkinId) : Promise.resolve({ ok: true, images: [] }),
+        row.round2.checkinId ? getCheckinImages(row.round2.checkinId) : Promise.resolve({ ok: true, images: [] }),
+      ]);
+
+      setCompareRow((prev) =>
+        prev
+          ? {
+              ...prev,
+              round1: { ...prev.round1, images: r1Full.images || prev.round1.images || [] },
+              round2: { ...prev.round2, images: r2Full.images || prev.round2.images || [] },
+            }
+          : prev
+      );
+    } finally {
+      setCompareLoading(false);
+    }
   };
 
   const handleCloseCompare = () => {
@@ -319,7 +340,10 @@ export default function DashboardPage() {
         </DialogTitle>
 
         <DialogContent dividers>
-          {!compareRow ? (
+          {compareLoading ? (
+            <Stack alignItems="center" py={4}><CircularProgress /></Stack>
+          ) : 
+          !compareRow ? (
             <Alert severity="info">ยังไม่มีข้อมูล</Alert>
           ) : (
             <Stack
