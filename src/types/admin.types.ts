@@ -39,18 +39,21 @@ export type CurrentRoundResponse = {
 // Absence Page
 export type AbsenceType = "dayoff" | "sick" | "personal";
 
+export type AbsenceDate = { y: number; m: number; day: number };
+
 export type AbsenceRow = {
   userId: string;
   name: string;
   profileUrl: string | null;
   websiteName: string | null;
   type: AbsenceType;
+  note?: string | null;
 };
 
 export type AbsenceResponse = {
   ok: true;
-  date: string;
-  counts: { dayoff: number; sick: number };
+  date: AbsenceDate;
+  counts: { dayoff: number; sick: number; personal: number };
   rows: AbsenceRow[];
 };
 
